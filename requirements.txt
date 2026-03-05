@@ -1,0 +1,7 @@
+requests
+colorama
+beautifulsoup4
+os
+threading
+time
+itertools

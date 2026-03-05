@@ -47,11 +47,13 @@ while True:
 
     date_from = input('Enter the start date (YYYYMMDD): ').strip()
     date_to = input('Enter the end date (YYYYMMDD): ').strip()
+    limit = input('Enter a limit: ').strip()
 
     cdx_url = (
         f'http://web.archive.org/cdx/search/cdx?url={clean_url}/*'
         f'&output=text&fl=timestamp,original&collapse=urlkey'
         f'&from={date_from}&to={date_to}'
+        f'&limit={limit}'  
     )
 
     try:
@@ -93,12 +95,30 @@ while True:
         if len(parts) == 2:
             timestamp, url = parts
             formatted = f'{timestamp[:4]}-{timestamp[4:6]}-{timestamp[6:8]}'
-            print(f'[{formatted}] {url}')
+            print(f'[{formatted}] {url}\n')
             link_list[url] = formatted
 
     saved_to_file = input('\nDo you want to save the results to a file? (y/n): ').strip().lower()
     if saved_to_file == 'y':
-        filename = f'{clean_url.replace("/", "_")}_wayback_links.txt'
-        with open(filename, 'w') as f:
-            for url, date in link_list.items():
-                f.write(f'[{date}] {url}\n')    
+        print('\n[~] Leave blank to save in the same folder as the script')
+        directory_choosing = input('Enter full path or press Enter for project directory: ').strip()
+
+        if directory_choosing == '':
+            # saves right next to the .py file
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+        elif os.path.isabs(directory_choosing):
+            # user typed a full path
+            base_dir = directory_choosing
+        else:
+            # user typed a relative folder name e.g. Downloads
+            base_dir = os.path.join(os.path.expanduser('~'), directory_choosing)
+
+        filename = os.path.join(base_dir, f'{clean_url.replace("/", "_")}_wayback_links.txt')
+
+        if not os.path.exists(base_dir):
+            print(f'[!] Directory not found: {base_dir}')
+        else:
+            with open(filename, 'w') as f:
+                for url, date in link_list.items():
+                    f.write(f'[{date}] {url}' + '\n')
+            print(f'[+] Saved to {filename}')    
